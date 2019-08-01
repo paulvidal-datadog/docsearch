@@ -25,3 +25,9 @@ docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elas
 ```bash
 curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/documentation/_search?pretty'
 ```
+
+## Virtual env 
+
+```bash
+ source venv/bin/activate
+```
