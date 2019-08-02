@@ -6,7 +6,7 @@ from git.repo.base import Repo
 import markdown_inserter
 
 WIKI_URL = "https://github.com/{}/{}/wiki/{}"
-GIT_WIKI_URL= "https://github.com/{}/{}.wiki.git"
+GIT_WIKI_URL= "git@github.com:{}/{}.wiki.git"
 
 
 def get_all_wiki_page_content(user, repo):
@@ -41,7 +41,7 @@ def get_all_files_path(path):
     # r=root, d=directories, f = files
     for r, d, f in os.walk(path):
         for file in f:
-            if '.md' in file:
+            if not file.startswith('_') and file.endswith('.md'):
                 files.append(os.path.join(r, file))
 
     return files
@@ -55,3 +55,7 @@ if __name__ == '__main__':
 
     for wiki in get_all_wiki_page_content('junegunn', 'fzf'):
         markdown_inserter.insert_markdown_doc('junegunn', wiki['content'], wiki['title'], wiki['url'])
+
+    # for wiki in get_all_wiki_page_content('DataDog', 'devops'):
+    #     markdown_inserter.insert_markdown_doc('Devops Wiki', wiki['content'], wiki['title'], wiki['url'])
+    #     print('Inserted wiki file {} | url: {}'.format(wiki['title'], wiki['url']))

@@ -13,12 +13,12 @@ function search(query, calback) {
         multi_match: {
           query: query,
           fields: [
-            "title^3",
+            "title^1",
             "content^1",
-            "h1^3",
-            "h2^2",
-            "h3^1.5",
-            "h4^1.5",
+            "h1^1",
+            "h2^1",
+            "h3^1",
+            "h4^1",
             "h5^1",
             "h6^1"
           ],
@@ -64,7 +64,7 @@ function search(query, calback) {
           }
         }
       },
-      size: 100
+      size: 200
     }
   }, (err, result) => {
     if (err) {

@@ -56,6 +56,9 @@ def create():
                 },
                 "link": {
                     "type": "text",
+                },
+                "base_link": {
+                    "type": "text",
                 }
             }
         }

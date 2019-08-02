@@ -81,7 +81,10 @@ class CustomRenderer(mistune.Renderer):
         })
 
     def _insert_content(self, content, rendered_content, headers):
-        doc = {}
+        doc = {
+            'base_link': self.url,
+            'link': self.url,  # always use base url in case paragraph under file
+        }
 
         for header in headers:
             level = header['level']
@@ -92,6 +95,8 @@ class CustomRenderer(mistune.Renderer):
                                                '#' + h.lower().replace(':', '')
                                                               .replace('(', '')
                                                               .replace(')', '')
+                                                              .replace('/', '')
+                                                              .replace('\\', '')
                                                               .replace(',', '')
                                                               .replace(' ', '-')
                                                               .rstrip('.'))
