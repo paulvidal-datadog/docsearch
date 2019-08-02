@@ -18,11 +18,15 @@ class CustomRenderer(mistune.Renderer):
         self.tables = []
         self.lists = []
 
+        self.order = 0 # to keep an order of parts of doc we index so we can order them back at query time
+
     def header(self, text, level, raw=None):
         self._insert_header(self.remove_tags(text), level)
 
         rendered_content = super().header(text, level, raw)
-        self._insert_content(self.remove_tags(text), rendered_content, self.current_header)
+        self._insert_content(self.remove_tags(text), rendered_content, self.current_header, self.order, is_header=True)
+
+        self.order += 1  # increment order by 1
 
         return rendered_content
 
@@ -31,13 +35,17 @@ class CustomRenderer(mistune.Renderer):
 
         # Insert only if not an image or a link alone
         if not re.compile('^<(img|a).*>$').search(text):
-            self._insert_content(text, rendered_content, self.current_header)
+            self._insert_content(text, rendered_content, self.current_header, self.order)
+
+        self.order += 1  # increment order by 1
 
         return rendered_content
 
     def block_code(self, code, lang=None):
         rendered_content = super().block_code(code, lang)
-        self._insert_content(code, rendered_content, self.current_header)
+        self._insert_content(code, rendered_content, self.current_header, self.order)
+
+        self.order += 1  # increment order by 1
 
         return rendered_content
 
@@ -45,25 +53,27 @@ class CustomRenderer(mistune.Renderer):
         rendered_content = super().table(header, body)
 
         content = self.remove_tags(header + ' ' + body)
-        self._add_entry(content, rendered_content, self.tables, self.current_header)
-        # self._insert_content(self.remove_tags(content), rendered_content)
+        self._add_entry(content, rendered_content, self.tables, self.current_header, self.order)
+
+        self.order += 1  # increment order by 1
 
         return rendered_content
 
     def list(self, body, ordered=True):
         rendered_content = super().list(body, ordered)
 
-        self._add_entry(body, rendered_content, self.tables, self.current_header)
-        # self._insert_content(self.remove_tags(body), rendered_content)
+        self._add_entry(body, rendered_content, self.tables, self.current_header, self.order)
+
+        self.order += 1  # increment order by 1
 
         return rendered_content
 
 
     def insert_tables_and_list(self):
         for o in self.tables + self.lists:
-            self._insert_content(o['content'], o['rendered_content'], o['headers'])
+            self._insert_content(o['content'], o['rendered_content'], o['headers'], o['order'])
 
-    def _add_entry(self, content, rendered_content, list_content, headers):
+    def _add_entry(self, content, rendered_content, list_content, headers, order):
         duplicates = []
 
         for o in list_content:
@@ -77,10 +87,11 @@ class CustomRenderer(mistune.Renderer):
         list_content.append({
             'content': content,
             'rendered_content': rendered_content,
-            'headers': headers.copy()
+            'headers': headers.copy(),
+            'order': order
         })
 
-    def _insert_content(self, content, rendered_content, headers):
+    def _insert_content(self, content, rendered_content, headers, order, is_header=False):
         doc = {
             'base_link': self.url,
             'link': self.url,  # always use base url in case paragraph under file
@@ -105,6 +116,8 @@ class CustomRenderer(mistune.Renderer):
         doc['rendered_content'] = rendered_content
         doc['title'] = self.doc_title
         doc['source'] = self.source
+        doc['header'] = is_header
+        doc['order'] = order
 
         id = hashlib.md5(doc['rendered_content'].encode("utf-8")).hexdigest()
 

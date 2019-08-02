@@ -7,10 +7,14 @@
             <label for="exampleInputEmail1">Search documents</label>
             <input class="form-control" id="exampleInputEmail1" v-model="query" placeholder="Search...">
           </div>
+          <div class="form-check form-check-inline" v-for="f in facets">
+            <input class="form-check-input" type="checkbox" :id="f.key" @change="toggleFacet(f.key)">
+            <label class="form-check-label ml-1" :for="f.key">{{ f.key }}</label>
+          </div>
         </form>
       </div>
 
-      <div class="row mt-2 mb-2">
+      <div class="row mt-3 mb-2">
         <div class="mt-1 mb-2">Displaying <strong>{{ groupResults.length }}</strong> file found</div>
 
         <div class="card mt-2 w-100" v-for="(r, i) in groupResults" @click="toggleVisibility(i)" style="cursor: pointer;">
@@ -23,7 +27,7 @@
             </h3>
             <div v-for="(hit_r, j) in r" v-if="reveal.includes(i)">
               <a :href="hit_r[0]._source.link" target="_blank" @click="toggleVisibility(i)"><h4 class="card-subtitle" v-html="'# ' + displayBreadcrumb(hit_r[0]._source, hit_r[0].highlight)"></h4></a>
-              <div v-for="o in hit_r">
+              <div v-for="o in $_.sortBy(hit_r, h => h._source.order)">
                 <div v-html="highlight(o._source.rendered_content, o.highlight.content)"></div>
               </div>
               <hr v-if="j !== r.length - 1"/>
@@ -36,7 +40,7 @@
 </template>
 
 <script>
-  import search from './query';
+  import client from './query';
 
   export default {
     name: 'app',
@@ -53,26 +57,38 @@
         query: '' || this.$route.query.q,
         results: [],
         reveal: [],
+        facets: [],
+        selectedFacets: [],
         hitCount: null
       }
     },
     created() {
       if (this.query) {
-        this.makeQuery();
+        this.refresh();
       }
     },
     watch: {
-      query: 'makeQuery'
+      query: 'refresh',
+      selectedFacets: 'refresh'
     },
     methods: {
+      refresh () {
+        this.makeQuery();
+        this.getFacets();
+      },
       makeQuery () {
         // Update the query path
         this.$router.push({ query: { q: this.query } });
 
         // Make a search call
-        search(this.query, (data) => {
+        client.search(this.query, this.selectedFacets, (data) => {
           this.results = data.hits.hits;
           this.hitCount = data.hits.total.value;
+        });
+      },
+      getFacets () {
+        client.getFacets((data) => {
+          this.facets = data.aggregations.genres.buckets;
         });
       },
       displayBreadcrumb(source, highlight) {
@@ -117,6 +133,13 @@
           this.reveal = this.reveal.filter(j => j !== i)
         } else {
           this.reveal.push(i)
+        }
+      },
+      toggleFacet(facet) {
+        if (this.selectedFacets.includes(facet)) {
+          this.selectedFacets = this.selectedFacets.filter(j => j !== facet)
+        } else {
+          this.selectedFacets.push(facet)
         }
       }
     }

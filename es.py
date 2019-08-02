@@ -59,7 +59,13 @@ def create():
                 },
                 "base_link": {
                     "type": "text",
-                }
+                },
+                "header": {
+                    "type": "boolean"
+                },
+                "order": {
+                    "type": "integer"
+                },
             }
         }
     })
