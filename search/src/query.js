@@ -12,8 +12,6 @@ function search(query, facets, callback) {
 
   const minShouldMatch = shouldTerms.length !== 0 ? 1 : 0;
 
-  console.log(shouldTerms);
-
   client.search({
     index: 'documentation',
     body: {
@@ -23,9 +21,9 @@ function search(query, facets, callback) {
             multi_match: {
               query: query,
               fields: [
-                "title^1",
+                "title^3",
                 "content^1",
-                "h1^1",
+                "h1^2",
                 "h2^1",
                 "h3^1",
                 "h4^1",
@@ -81,7 +79,7 @@ function search(query, facets, callback) {
           }
         }
       },
-      size: 200
+      size: 300
     }
   }, (err, result) => {
     if (err) {

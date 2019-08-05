@@ -47,7 +47,6 @@
     computed: {
       groupResults() {
         let groupedResults = this.$_.groupBy(this.results, r => r._source.source + ' / ' + r._source.title);
-        // return groupedResults;
         groupedResults = this.$_.mapValues(groupedResults, groupResult => this.$_.groupBy(groupResult, hit => this.displayBreadcrumb(hit._source, hit.highlight)));
         return Object.values(groupedResults).map(h => Object.values(h))
       }
@@ -63,9 +62,7 @@
       }
     },
     created() {
-      if (this.query) {
-        this.refresh();
-      }
+      this.refresh();
     },
     watch: {
       query: 'refresh',

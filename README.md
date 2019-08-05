@@ -9,7 +9,7 @@ docker pull docker.elastic.co/elasticsearch/elasticsearch:7.2.0
 ## Launch ES using docker 
 
 ```bash
-docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+docker run -d -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.2.0
 ```
 
 ## ES
@@ -27,6 +27,14 @@ curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/documentation/_s
 ```
 
 ## Virtual env 
+
+### Create
+
+```bash
+python3 -m venv ./venv
+```
+
+### Activate
 
 ```bash
  source venv/bin/activate

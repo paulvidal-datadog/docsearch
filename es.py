@@ -74,10 +74,5 @@ def create():
 
 
 def delete():
-    res = es.indices.delete(index=INDEX)
+    res = es.indices.delete(index=INDEX, ignore=[400, 404])
     print('Deleted index res=' + str(res))
-
-
-if __name__ == '__main__':
-    delete()
-    create()
