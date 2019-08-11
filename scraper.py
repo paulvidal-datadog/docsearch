@@ -14,10 +14,10 @@ GIT_URL = "git@github.com:{}/{}.git"
 
 
 CONTENT_TO_INDEX = {
-    # ('wiki', 'Datadog', 'devops', 'wiki'),
-    # ('repo', 'Datadog', 'devops', 'tree/prod'),
-    # ('repo', 'Datadog', 'logs-ops', 'tree/master'),
-    # ('repo', 'Datadog', 'logs-backend', 'tree/prod'),
+    ('wiki', 'Datadog', 'devops', 'wiki'),
+    ('repo', 'Datadog', 'devops', 'tree/prod'),
+    ('repo', 'Datadog', 'logs-ops', 'tree/master'),
+    ('repo', 'Datadog', 'logs-backend', 'tree/prod'),
     ('wiki', 'Datadog', 'logs-backend', 'wiki')
 }
 
@@ -70,7 +70,7 @@ def get_all_repo_page_content(user, repo, url_prefix):
         link_path = path.replace(dest_folder + '/', '')
 
         yield {
-            'title': link_path,
+            'title': link_path.replace('.md', ''),
             'url': URL.format(user, repo, url_prefix, link_path),
             'content': file.read()
         }
@@ -96,7 +96,7 @@ GET_PAGE_CONTENT = {
 
 if __name__ == '__main__':
     # Clone all the repos
-    # clone_all_resources(CONTENT_TO_INDEX)
+    clone_all_resources(CONTENT_TO_INDEX)
 
     # Recreate all the ES indexes
     es.delete()

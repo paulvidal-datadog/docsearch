@@ -4,35 +4,39 @@
       <div class="row">
         <form class="w-100" onsubmit="return false;">
           <div class="form-group">
-            <label for="exampleInputEmail1">Search documents</label>
-            <input class="form-control" id="exampleInputEmail1" v-model="query" placeholder="Search...">
+            <label class="font-weight-bold" for="search">Search documents</label>
+            <input class="form-control" id="search" v-model="query" placeholder="Type anything in here...">
           </div>
           <div class="form-check form-check-inline" v-for="f in facets">
-            <input class="form-check-input" type="checkbox" :id="f.key" @change="toggleFacet(f.key)">
-            <label class="form-check-label ml-1" :for="f.key">{{ f.key }}</label>
+            <input class="form-check-input" type="checkbox" :id="f" @change="toggleFacet(f)">
+            <label class="form-check-label ml-1" :for="f">{{ f }}</label>
           </div>
         </form>
       </div>
-
       <div class="row mt-3 mb-2">
-        <div class="mt-1 mb-2">Displaying <strong>{{ groupResults.length }}</strong> file found</div>
+        <div class="mt-1 mb-2" v-if="query">Displaying <strong>{{ groupResults.length }}</strong> results found</div>
 
-        <div class="card mt-2 w-100" v-for="(r, i) in groupResults" @click="toggleVisibility(i)" style="cursor: pointer;">
-          <div class="card-body markdown-body p-2 pl-3 pr-3">
-            <h3 class="card-title">
-              <font-awesome-icon :icon="reveal.includes(i) ? 'caret-down' : 'caret-right'" class="mr-1" />
-              {{ r[0][0]._source.source + ' /'}}
-              <a :href="r[0][0]._source.base_link" target="_blank" @click="toggleVisibility(i)" v-html="highlight(r[0][0]._source.title, r[0][0].highlight.title)"></a>
-              <h6 class="float-right mt-0">{{ i + 1 }}</h6>
-            </h3>
-            <div v-for="(hit_r, j) in r" v-if="reveal.includes(i)">
-              <a :href="hit_r[0]._source.link" target="_blank" @click="toggleVisibility(i)"><h4 class="card-subtitle" v-html="'# ' + displayBreadcrumb(hit_r[0]._source, hit_r[0].highlight)"></h4></a>
-              <div v-for="o in $_.sortBy(hit_r, h => h._source.order)">
-                <div v-html="highlight(o._source.rendered_content, o.highlight.content)"></div>
-              </div>
-              <hr v-if="j !== r.length - 1"/>
+        <div class="card mt-3 w-100" v-for="r in groupResults">
+          <a :href="r._source.link" target="_blank" class="result-link">
+            <div class="card-body p-2 pl-3 pr-3">
+
+              <!-- Title -->
+              <h4 class="card-title mb-0">
+                <strong class="result-title mb-0" v-html="highlight(r._source.title, r.highlight.title)"></strong>
+                <h6 class="float-right mt-0 mb-0 result-subtitle">{{ r._source.source }}</h6>
+              </h4>
+
+              <!-- h1, h2 and h3 -->
+              <h4 class="mt-0 mb-1" v-if="displayBreadcrumb(r._source, r.highlight)">
+                <span class="m-0 result-subtitle hash"># </span>
+                <span class="m-0 result-subtitle" v-html="displayBreadcrumb(r._source, r.highlight)"></span>
+              </h4>
+
+              <!-- Paragraph -->
+              <div class="p-2 pl-3 pr-3 markdown-body" v-if="r._source.type !== 'header' && r._source.type !== 'title'"
+                   v-html="highlight(r._source.rendered_content, r.highlight.content, paragraph=true)"></div>
             </div>
-          </div>
+          </a>
         </div>
       </div>
     </div>
@@ -40,20 +44,42 @@
 </template>
 
 <script>
-  import client from './query';
-
   export default {
     name: 'app',
     computed: {
       groupResults() {
-        let groupedResults = this.$_.groupBy(this.results, r => r._source.source + ' / ' + r._source.title);
-        groupedResults = this.$_.mapValues(groupedResults, groupResult => this.$_.groupBy(groupResult, hit => this.displayBreadcrumb(hit._source, hit.highlight)));
-        return Object.values(groupedResults).map(h => Object.values(h))
+        const goupByTitle = (r) => {
+          // We only go down up to h3
+          let key = r._source.source + ' / ' + r._source.title;
+          key += r._source.h1 ? '/' + r._source.h1 : '';
+          key += r._source.h2 ? '/' + r._source.h2 : '';
+          key += r._source.h3 ? '/' + r._source.h3 : '';
+          return key;
+        };
+
+        // We group all the results together based on the h3 heading path
+        let groupedResults = this.$_.groupBy(this.results, goupByTitle);
+
+        // We only show the most relevant of this heading and don't go further
+        // This prevent from showing multiple part of the document for the same h3 (only show the most relevant)
+        let results = Object.values(groupedResults).map(results => results[0]);
+
+        // We regroup all the documents that have the same score then
+        results = this.$_.groupBy(results, r => [r._source.title, r._score]);
+
+        // We take the document that is a title or the first one
+        results = Object.values(results).map(results => {
+          const title = results.filter(r => r._source.type === 'title');
+          const best_result = title.length !== 0 ? title[0] : results[0];
+          return best_result;
+        });
+
+        return results
       }
     },
     data() {
       return {
-        query: '' || this.$route.query.q,
+        query: this.$route.query.q || '',
         results: [],
         reveal: [],
         facets: [],
@@ -74,33 +100,53 @@
         this.getFacets();
       },
       makeQuery () {
+        const query = this.query;
+        const facets = this.selectedFacets;
+
         // Update the query path
-        this.$router.push({ query: { q: this.query } });
+        this.$router.push({ query: { q: query } });
 
         // Make a search call
-        client.search(this.query, this.selectedFacets, (data) => {
+        this.$http.post('/api/search', {
+          query: query,
+          facets: facets
+
+        }).then(response => {
+          const data = response.data;
           this.results = data.hits.hits;
           this.hitCount = data.hits.total.value;
+
+        }, error => {
+          this.$bvToast.toast(`An error occured while searching for ${this.query}`, {
+            title: 'Error',
+            variant: 'danger'
+          })
         });
       },
       getFacets () {
-        client.getFacets((data) => {
-          this.facets = data.aggregations.genres.buckets;
+        this.$http.get('/api/facets').then(response => {
+          const data = response.data;
+          this.facets = data.aggregations.genres.buckets.map(f => f.key);
+          this.facets.sort()
+
+        }, error => {
+          this.$bvToast.toast(`An error occured while getting facets`, {
+            title: 'Warning',
+            variant: 'warning'
+          })
         });
       },
       displayBreadcrumb(source, highlight) {
+        // We only go down up to h3
         let titles = [
           highlight ? this.highlight(source.h1, highlight.h1) : source.h1,
           highlight ? this.highlight(source.h2, highlight.h2) : source.h2,
           highlight ? this.highlight(source.h3, highlight.h3) : source.h3,
-          highlight ? this.highlight(source.h4, highlight.h4) : source.h4,
-          highlight ? this.highlight(source.h5, highlight.h5) : source.h5,
-          highlight ? this.highlight(source.h6, highlight.h6) : source.h6
         ];
 
-        return titles.filter(Boolean).join(' / ')
+        return titles.filter(Boolean).join(' > ')
       },
-      highlight(renderedContent, highlightWords) {
+      highlight(renderedContent, highlightWords, paragraph=false) {
         if (!highlightWords) {
           return renderedContent;
         }
@@ -109,17 +155,18 @@
         highlightWords = highlightWords.join(' ');
 
         const wordMatched = [...new Set([...highlightWords.matchAll('<em>(.*?)<\/em>')].map(m => m[1]))];
-
         let highlightedRenderedContent = renderedContent;
+
         wordMatched.map(word => {
+          const cssClass = paragraph ? 'hglt-txt' : 'hglt';
+
           try {
             highlightedRenderedContent = highlightedRenderedContent.replace(
               new RegExp(word + '(?![^<]\\*?>)', "g"), // do not replace in url within link tags i.e. <a href="url"></a>
-              `<em class="hglt">${word}</em>`
+              `<em class="${cssClass}">${word}</em>`
             );
           } catch(err) {
-            // TODO: fix this regex
-            console.log(err)
+            console.log(err) // FIXME: regex does not work sometimes when special characters are used
           }
         });
 
@@ -150,7 +197,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-align: left;
     color: #2c3e50;
-    margin-top: 60px;
+    margin-top: 30px;
   }
 
   .hglt {
@@ -158,5 +205,37 @@
     font-weight: bold;
     color: #de422f;
     background-color: #ffbcbca3;
+    padding: 3px;
   }
+
+  .hglt-txt {
+    font-style: normal;
+    font-weight: 900;
+    color: rgb(36, 41, 46);;
+  }
+
+  .hash {
+    color: #de422f !important;
+  }
+
+  p {
+    margin: 0 !important;
+  }
+
+  .result-link {
+    text-decoration: none !important;
+  }
+
+  .result-title {
+    color: #24292e;;
+    font-weight: 900 !important;
+    font-size: 1rem;
+  }
+
+  .result-subtitle {
+    color: #24292e;;
+    /*font-weight: 900 !important;*/
+    font-size: 1rem;
+  }
+
 </style>

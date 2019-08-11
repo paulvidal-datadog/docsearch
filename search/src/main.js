@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import fontAwesome from './font-awesome'
 import BootstrapVue from 'bootstrap-vue'
+import VueResource from 'vue-resource'
 import _ from 'lodash';
 
 import 'bootstrap/dist/css/bootstrap.css'
@@ -10,6 +11,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 import 'bootstrap/dist/js/bootstrap.js'
 
 Vue.use(BootstrapVue);
+Vue.use(VueResource);
 
 // Import github css like stylesheet
 import 'github-markdown-css/github-markdown.css'
