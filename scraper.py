@@ -1,5 +1,7 @@
 import os
+import re
 import shutil
+
 import es
 
 from git.repo.base import Repo
@@ -18,7 +20,12 @@ CONTENT_TO_INDEX = {
     ('repo', 'Datadog', 'devops', 'tree/prod'),
     ('repo', 'Datadog', 'logs-ops', 'tree/master'),
     ('repo', 'Datadog', 'logs-backend', 'tree/prod'),
-    ('wiki', 'Datadog', 'logs-backend', 'wiki')
+    ('wiki', 'Datadog', 'logs-backend', 'wiki'),
+    ('hugo', 'Datadog', 'infra-docs', 'tree/master')
+}
+
+HUGO_URLS = {
+    'infra-docs': 'https://infra-docs.us1.prod.dog/'
 }
 
 
@@ -35,7 +42,7 @@ def clone_resource(content_to_index):
     if content_type == 'wiki':
         url = GIT_WIKI_URL.format(user, repo)
 
-    elif content_type == 'repo':
+    elif content_type == 'repo' or content_type == 'hugo':
         url = GIT_URL.format(user, repo)
 
     # clear the dest directory if it exists
@@ -88,9 +95,55 @@ def _get_all_files_path(path):
     return files
 
 
+# For hugo repos (generated doc using hugo)
+def get_all_hugo_repo_page_content(user, repo, url_prefix):
+    dest_folder = "./{}_{}_hugo/content".format(user, repo)  # we go in the content folder
+    url = HUGO_URLS.get(repo)
+
+    if url is None:
+        raise Exception("You must specify the url poiting to the hosted hugo doc")
+
+    for path in _get_all_files_path_hugo(dest_folder):
+        file = open(path, "r")
+        link_path = path.replace(dest_folder + '/', '')
+        title = link_path\
+            .replace('.md', '')\
+            .replace('/_index', '')\
+            .replace('_index', '')
+        full_url = url + title.lower()
+
+        if title == '':
+            title = repo
+            full_url = url
+
+        # we remove the hugo template descriptive part (title name, description)
+        content = file.read()
+        content = re.sub(r'---[\s\S]*?title:[\s\S]*?---', '', content)
+
+        yield {
+            'title': title,
+            'url': full_url,
+            'content': content
+        }
+
+
+def _get_all_files_path_hugo(path):
+    files = []
+
+    # r=root, d=directories, f = files
+    for r, d, f in os.walk(path):
+        for file in f:
+            if file.endswith('.md'):
+                files.append(os.path.join(r, file))
+
+    return files
+
+
+
 GET_PAGE_CONTENT = {
     'wiki': get_all_wiki_page_content,
-    'repo': get_all_repo_page_content
+    'repo': get_all_repo_page_content,
+    'hugo': get_all_hugo_repo_page_content
 }
 
 
