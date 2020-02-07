@@ -19,6 +19,7 @@ FACET_GROUP_LOGS = "logs"
 FACET_GROUP_DEVOPS = "devops"
 FACET_GROUP_INFRA = "infra"
 FACET_GROUP_SE = "solution engineers"
+FACET_GROUP_ALERTING = "alerting"
 
 # Facets
 FACET_DEVOPS_WIKI = "devops wiki"
@@ -28,6 +29,7 @@ FACET_LOGS_BACKEND_REPO = "logs backend repo"
 FACET_LOGS_BACKEND_WIKI = "logs backend wiki"
 FACET_LOGS_ES_TOOLBOX_REPO = "es toolbox repo"
 FACET_INFRA_DOC = "infra doc"
+FACET_ALERTING_DOC = "alerting doc"
 FACET_SE_WIKI = "solution engineers wiki"
 
 
@@ -46,6 +48,9 @@ FACET_GROUPS = {
     ],
     FACET_GROUP_SE: [
         FACET_SE_WIKI
+    ],
+    FACET_GROUP_ALERTING: [
+        FACET_ALERTING_DOC
     ]
 }
 
@@ -60,10 +65,12 @@ CONTENT_TO_INDEX = {
     ('hugo', 'Datadog', 'infra-docs', 'tree/master', FACET_INFRA_DOC, FACET_GROUP_INFRA),
     ('wiki', 'Datadog', 'se-docs', 'wiki', FACET_SE_WIKI, FACET_GROUP_SE),
     ('repo', 'Datadog', 'elasticsearch-toolbox', 'tree/master', FACET_LOGS_ES_TOOLBOX_REPO, FACET_GROUP_LOGS),
+    ('hugo', 'Datadog', 'alerting-docs', 'tree/master', FACET_ALERTING_DOC, FACET_GROUP_ALERTING),
 }
 
 HUGO_URLS = {
-    'infra-docs': 'https://infra-docs.us1.prod.dog/'
+    'infra-docs': 'https://infra-docs.us1.prod.dog/',
+    'alerting-docs': 'https://alerting-docs.us1.prod.dog/'
 }
 
 
