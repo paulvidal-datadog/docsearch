@@ -16,14 +16,17 @@ GIT_URL = "git@github.com:{}/{}.git"
 
 # Facet groups
 FACET_GROUP_LOGS = "logs"
-FACET_GROUP_DEVOPS = "devops"
 FACET_GROUP_INFRA = "infra"
 FACET_GROUP_SE = "solution engineers"
 FACET_GROUP_ALERTING = "alerting"
+FACET_GROUP_DATA_ENG = "data engineering"
+FACET_GROUP_DATADOG = "datadog"
 
 # Facets
-FACET_DEVOPS_WIKI = "devops wiki"
-FACET_DEVOPS_REPO = "devops repo"
+FACET_DATADOG_DEVOPS_WIKI = "devops wiki"
+FACET_DATADOG_DEVOPS_REPO = "devops repo"
+FACET_DATADOG_ARCHITECTURE = "architecture and RFCs"
+FACET_DATADOG_CLOUDOPS = "cloudops"
 FACET_LOGS_OPS_REPO = "logs ops repo"
 FACET_LOGS_BACKEND_REPO = "logs backend repo"
 FACET_LOGS_BACKEND_WIKI = "logs backend wiki"
@@ -31,6 +34,7 @@ FACET_LOGS_ES_TOOLBOX_REPO = "es toolbox repo"
 FACET_INFRA_DOC = "infra doc"
 FACET_ALERTING_DOC = "alerting doc"
 FACET_SE_WIKI = "solution engineers wiki"
+FACET_DATA_ENG_GOLDEN_PATH_REPO = "golden paths repo"
 
 
 FACET_GROUPS = {
@@ -40,10 +44,6 @@ FACET_GROUPS = {
         FACET_LOGS_BACKEND_WIKI,
         FACET_LOGS_ES_TOOLBOX_REPO
     ],
-    FACET_GROUP_DEVOPS: [
-        FACET_DEVOPS_WIKI,
-        FACET_DEVOPS_REPO
-    ],
     FACET_GROUP_INFRA: [
         FACET_INFRA_DOC
     ],
@@ -52,14 +52,25 @@ FACET_GROUPS = {
     ],
     FACET_GROUP_ALERTING: [
         FACET_ALERTING_DOC
+    ],
+    FACET_GROUP_DATA_ENG: [
+        FACET_DATA_ENG_GOLDEN_PATH_REPO
+    ],
+    FACET_GROUP_DATADOG: [
+        FACET_DATADOG_DEVOPS_WIKI,
+        FACET_DATADOG_DEVOPS_REPO,
+        FACET_DATADOG_CLOUDOPS,
+        FACET_DATADOG_ARCHITECTURE,
     ]
 }
 
 CONTENT_TO_INDEX = {
     # type, org/user, repo, url_prefix, facet name, facet group
 
-    ('wiki', 'Datadog', 'devops', 'wiki', FACET_DEVOPS_WIKI, FACET_GROUP_DEVOPS),
-    ('repo', 'Datadog', 'devops', 'tree/prod', FACET_DEVOPS_REPO, FACET_GROUP_DEVOPS),
+    ('wiki', 'Datadog', 'devops', 'wiki', FACET_DATADOG_DEVOPS_WIKI, FACET_GROUP_DATADOG),
+    ('repo', 'Datadog', 'devops', 'tree/prod', FACET_DATADOG_DEVOPS_REPO, FACET_GROUP_DATADOG),
+    ('repo', 'Datadog', 'architecture', 'tree/master', FACET_DATADOG_ARCHITECTURE, FACET_GROUP_DATADOG),
+    ('repo', 'Datadog', 'cloudops', 'tree/master', FACET_DATADOG_CLOUDOPS, FACET_GROUP_DATADOG),
     ('repo', 'Datadog', 'logs-ops', 'tree/master', FACET_LOGS_OPS_REPO, FACET_GROUP_LOGS),
     ('repo', 'Datadog', 'logs-backend', 'tree/prod', FACET_LOGS_BACKEND_REPO, FACET_GROUP_LOGS),
     ('wiki', 'Datadog', 'logs-backend', 'wiki', FACET_LOGS_BACKEND_WIKI, FACET_GROUP_LOGS),
@@ -67,6 +78,7 @@ CONTENT_TO_INDEX = {
     ('wiki', 'Datadog', 'se-docs', 'wiki', FACET_SE_WIKI, FACET_GROUP_SE),
     ('repo', 'Datadog', 'elasticsearch-toolbox', 'tree/master', FACET_LOGS_ES_TOOLBOX_REPO, FACET_GROUP_LOGS),
     ('hugo', 'Datadog', 'alerting-docs', 'tree/master', FACET_ALERTING_DOC, FACET_GROUP_ALERTING),
+    ('repo', 'Datadog', 'golden-paths', 'tree/master', FACET_DATA_ENG_GOLDEN_PATH_REPO, FACET_GROUP_DATA_ENG),
 }
 
 HUGO_URLS = {
