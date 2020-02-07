@@ -117,12 +117,8 @@ def search(query, facets):
                         ],
                         'fuzziness': "AUTO",
                         'prefix_length': 2,
-                        # 'tie_breaker': 0.3
                     }
                 },
-                # 'filter': {
-                    # 'term': {'header': False},
-                # },
                 'should': should_terms,
                 'minimum_should_match': min_should_match,
             }
@@ -165,7 +161,7 @@ def search(query, facets):
                 }
             }
         },
-        'size': 300
+        'size': 500
     })
 
 
