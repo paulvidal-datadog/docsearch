@@ -18,6 +18,7 @@ GIT_URL = "git@github.com:{}/{}.git"
 FACET_GROUP_LOGS = "logs"
 FACET_GROUP_DEVOPS = "devops"
 FACET_GROUP_INFRA = "infra"
+FACET_GROUP_SE = "solution engineers"
 
 # Facets
 FACET_DEVOPS_WIKI = "devops wiki"
@@ -26,6 +27,8 @@ FACET_LOGS_OPS_REPO = "logs ops repo"
 FACET_LOGS_BACKEND_REPO = "logs backend repo"
 FACET_LOGS_BACKEND_WIKI = "logs backend wiki"
 FACET_INFRA_DOC = "infra doc"
+FACET_SE_WIKI = "solution engineers wiki"
+
 
 FACET_GROUPS = {
     FACET_GROUP_LOGS: [
@@ -39,17 +42,22 @@ FACET_GROUPS = {
     ],
     FACET_GROUP_INFRA: [
         FACET_INFRA_DOC
+    ],
+    FACET_GROUP_SE: [
+        FACET_SE_WIKI
     ]
 }
 
 CONTENT_TO_INDEX = {
     # type, org/user, repo, url_prefix, facet name, facet group
+
     ('wiki', 'Datadog', 'devops', 'wiki', FACET_DEVOPS_WIKI, FACET_GROUP_DEVOPS),
     ('repo', 'Datadog', 'devops', 'tree/prod', FACET_DEVOPS_REPO, FACET_GROUP_DEVOPS),
     ('repo', 'Datadog', 'logs-ops', 'tree/master', FACET_LOGS_OPS_REPO, FACET_GROUP_LOGS),
     ('repo', 'Datadog', 'logs-backend', 'tree/prod', FACET_LOGS_BACKEND_REPO, FACET_GROUP_LOGS),
     ('wiki', 'Datadog', 'logs-backend', 'wiki', FACET_LOGS_BACKEND_WIKI, FACET_GROUP_LOGS),
-    ('hugo', 'Datadog', 'infra-docs', 'tree/master', FACET_INFRA_DOC, FACET_GROUP_INFRA)
+    ('hugo', 'Datadog', 'infra-docs', 'tree/master', FACET_INFRA_DOC, FACET_GROUP_INFRA),
+    ('wiki', 'Datadog', 'se-docs', 'wiki', FACET_SE_WIKI, FACET_GROUP_SE),
 }
 
 HUGO_URLS = {
@@ -87,7 +95,10 @@ def get_all_wiki_page_content(user, repo, url_prefix):
 
     for path in _get_all_files_path(dest_folder):
         file = open(path, "r")
-        link_path = path.replace(dest_folder + '/', '').replace('.md', '')
+        link_path = path\
+            .replace(dest_folder + '/', '')\
+            .replace('.md', '')\
+            .rsplit('/', 1)[-1]  # Get last part of the url after last /
 
         yield {
             'title': link_path.replace('-', ' '),
@@ -167,7 +178,6 @@ def _get_all_files_path_hugo(path):
     return files
 
 
-
 GET_PAGE_CONTENT = {
     'wiki': get_all_wiki_page_content,
     'repo': get_all_repo_page_content,
@@ -177,7 +187,7 @@ GET_PAGE_CONTENT = {
 
 if __name__ == '__main__':
     # Clone all the repos
-    # clone_all_resources(CONTENT_TO_INDEX)
+    clone_all_resources(CONTENT_TO_INDEX)
 
     # Recreate all the ES indexes
     es.delete()
