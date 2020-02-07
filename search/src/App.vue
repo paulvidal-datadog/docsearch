@@ -12,11 +12,11 @@
       <div class="row mt-3 mb-2">
         <div class="col-2 card pb-4 h-100">
           <h5 class="font-weight-bold mt-4">Facets</h5>
-          <div class="container mt-2" v-for="(facetsForGroup, facetGroupName) in facets">
-            <hr>
+          <div class="container mt-1" v-for="(facetsForGroup, facetGroupName) in facets">
+            <hr class="mt-2 mb-2">
             <input class="form-check-input" type="checkbox" :id="facetGroupName" @change="toggleFacetGroup(facetGroupName)" v-model="selectedFacetGroups.includes(facetGroupName)">
             <label class="col-12 form-check-label ml-1 font-weight-bold" :for="facetGroupName">{{ facetGroupName }}</label>
-            <div class="col-12 pr-0 mt-2 form-check form-check-inline" v-for="facet in facetsForGroup">
+            <div class="col-12 pr-0 mt-1 form-check form-check-inline" v-for="facet in facetsForGroup">
               <input class="form-check-input" type="checkbox" :id="facet" @change="toggleFacet(facet)" v-model="selectedFacets.includes(facet)">
               <label class="form-check-label ml-1" :for="facet">{{ facet }}</label>
             </div>
@@ -181,10 +181,6 @@
       },
       toggleFacetGroup(facetGroup) {
         let facetsForGroup = this.facets[facetGroup];
-
-        console.log(this.facets);
-        console.log(facetGroup);
-        console.log(facetsForGroup);
 
         if (this.selectedFacetGroups.includes(facetGroup)) {
           this.selectedFacetGroups = this.selectedFacetGroups.filter(j => j !== facetGroup);
