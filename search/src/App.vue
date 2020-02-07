@@ -54,6 +54,8 @@
 </template>
 
 <script>
+  import _ from 'lodash'
+
   export default {
     name: 'app',
     computed: {
@@ -102,6 +104,7 @@
       }
     },
     created() {
+      this.getFacets();
       this.refresh();
     },
     watch: {
@@ -111,33 +114,33 @@
     methods: {
       refresh () {
         this.makeQuery();
-        this.getFacets();
       },
-      makeQuery () {
-        const query = this.query;
-        const facets = this.getFacetArray();
-        const facetQueryString = this.selectedFacets;
+      makeQuery: _.debounce(function query() {
+          const query = this.query;
+          const facets = this.getFacetArray();
+          const facetQueryString = this.selectedFacets;
 
-        // Update the query path
-        this.$router.push({ query: { facets: facetQueryString, q: query } });
+          // Update the query path
+          this.$router.push({query: {facets: facetQueryString, q: query}});
 
-        // Make a search call
-        this.$http.post('/api/search', {
-          query: query,
-          facets: facets
+          // Make a search call
+          this.$http.post('/api/search', {
+            query: query,
+            facets: facets
 
-        }).then(response => {
-          const data = response.data;
-          this.results = data.hits.hits;
-          this.hitCount = data.hits.total.value;
+          }).then(response => {
+            const data = response.data;
+            this.results = data.hits.hits;
+            this.hitCount = data.hits.total.value;
 
-        }, error => {
-          this.$bvToast.toast(`An error occured while searching for ${this.query}`, {
-            title: 'Error',
-            variant: 'danger'
-          })
-        });
-      },
+          }, error => {
+            this.$bvToast.toast(`An error occured while searching for ${this.query}`, {
+              title: 'Error',
+              variant: 'danger'
+            })
+          });
+        }, 300)
+      ,
       getFacets () {
         this.$http.get('/api/facets').then(response => {
           this.facets = response.data;
