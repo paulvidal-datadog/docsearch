@@ -1,5 +1,7 @@
+import os
+
 import es
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 
 app = Flask(__name__,
             static_folder="./static/assets",
@@ -9,6 +11,11 @@ app = Flask(__name__,
 @app.route('/')
 def index():
     return render_template("index.html")
+
+
+@app.route('/favicon.ico')
+def send_favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico')
 
 
 @app.route('/api/search', methods=['POST'])
