@@ -26,6 +26,7 @@ FACET_DEVOPS_REPO = "devops repo"
 FACET_LOGS_OPS_REPO = "logs ops repo"
 FACET_LOGS_BACKEND_REPO = "logs backend repo"
 FACET_LOGS_BACKEND_WIKI = "logs backend wiki"
+FACET_LOGS_ES_TOOLBOX_REPO = "es toolbox repo"
 FACET_INFRA_DOC = "infra doc"
 FACET_SE_WIKI = "solution engineers wiki"
 
@@ -58,6 +59,7 @@ CONTENT_TO_INDEX = {
     ('wiki', 'Datadog', 'logs-backend', 'wiki', FACET_LOGS_BACKEND_WIKI, FACET_GROUP_LOGS),
     ('hugo', 'Datadog', 'infra-docs', 'tree/master', FACET_INFRA_DOC, FACET_GROUP_INFRA),
     ('wiki', 'Datadog', 'se-docs', 'wiki', FACET_SE_WIKI, FACET_GROUP_SE),
+    ('repo', 'Datadog', 'elasticsearch-toolbox', 'tree/master', FACET_LOGS_ES_TOOLBOX_REPO, FACET_GROUP_LOGS),
 }
 
 HUGO_URLS = {
