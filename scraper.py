@@ -14,14 +14,42 @@ GIT_WIKI_URL = "git@github.com:{}/{}.wiki.git"
 URL = "https://github.com/{}/{}/{}/{}"
 GIT_URL = "git@github.com:{}/{}.git"
 
+# Facet groups
+FACET_GROUP_LOGS = "logs"
+FACET_GROUP_DEVOPS = "devops"
+FACET_GROUP_INFRA = "infra"
+
+# Facets
+FACET_DEVOPS_WIKI = "devops wiki"
+FACET_DEVOPS_REPO = "devops repo"
+FACET_LOGS_OPS_REPO = "logs ops repo"
+FACET_LOGS_BACKEND_REPO = "logs backend repo"
+FACET_LOGS_BACKEND_WIKI = "logs backend wiki"
+FACET_INFRA_DOC = "infra doc"
+
+FACET_GROUPS = {
+    FACET_GROUP_LOGS: [
+        FACET_LOGS_OPS_REPO,
+        FACET_LOGS_BACKEND_REPO,
+        FACET_LOGS_BACKEND_WIKI
+    ],
+    FACET_GROUP_DEVOPS: [
+        FACET_DEVOPS_WIKI,
+        FACET_DEVOPS_REPO
+    ],
+    FACET_GROUP_INFRA: [
+        FACET_INFRA_DOC
+    ]
+}
 
 CONTENT_TO_INDEX = {
-    ('wiki', 'Datadog', 'devops', 'wiki'),
-    ('repo', 'Datadog', 'devops', 'tree/prod'),
-    ('repo', 'Datadog', 'logs-ops', 'tree/master'),
-    ('repo', 'Datadog', 'logs-backend', 'tree/prod'),
-    ('wiki', 'Datadog', 'logs-backend', 'wiki'),
-    ('hugo', 'Datadog', 'infra-docs', 'tree/master')
+    # type, org/user, repo, url_prefix, facet name, facet group
+    ('wiki', 'Datadog', 'devops', 'wiki', FACET_DEVOPS_WIKI, FACET_GROUP_DEVOPS),
+    ('repo', 'Datadog', 'devops', 'tree/prod', FACET_DEVOPS_REPO, FACET_GROUP_DEVOPS),
+    ('repo', 'Datadog', 'logs-ops', 'tree/master', FACET_LOGS_OPS_REPO, FACET_GROUP_LOGS),
+    ('repo', 'Datadog', 'logs-backend', 'tree/prod', FACET_LOGS_BACKEND_REPO, FACET_GROUP_LOGS),
+    ('wiki', 'Datadog', 'logs-backend', 'wiki', FACET_LOGS_BACKEND_WIKI, FACET_GROUP_LOGS),
+    ('hugo', 'Datadog', 'infra-docs', 'tree/master', FACET_INFRA_DOC, FACET_GROUP_INFRA)
 }
 
 HUGO_URLS = {
@@ -34,7 +62,7 @@ def clone_all_resources(all_content):
 
 
 def clone_resource(content_to_index):
-    content_type, user, repo, _ = content_to_index
+    content_type, user, repo, _, _, _ = content_to_index
 
     dest_folder = "./{}_{}_{}".format(user, repo, content_type)
     url = ""
@@ -149,7 +177,7 @@ GET_PAGE_CONTENT = {
 
 if __name__ == '__main__':
     # Clone all the repos
-    clone_all_resources(CONTENT_TO_INDEX)
+    # clone_all_resources(CONTENT_TO_INDEX)
 
     # Recreate all the ES indexes
     es.delete()
@@ -157,11 +185,10 @@ if __name__ == '__main__':
 
     #  Insert  all the resources
     for content in CONTENT_TO_INDEX:
-        content_type, user, repo, url_prefix = content
-        source = repo + ' ' + content_type
+        content_type, user, repo, url_prefix, facet_name, facet_group = content
 
         content_getter_f = GET_PAGE_CONTENT[content_type]
 
         for content in content_getter_f(user, repo, url_prefix):
-            markdown_inserter.insert_markdown_doc(source, content['content'], content['title'], content['url'])
+            markdown_inserter.insert_markdown_doc(facet_name, facet_group, content['content'], content['title'], content['url'])
             print('Inserted {} file {} | url: {}'.format(content_type, content['title'], content['url']))

@@ -5,38 +5,48 @@
         <form class="w-100" onsubmit="return false;">
           <div class="form-group">
             <label class="font-weight-bold" for="search">Search documents</label>
-            <input class="form-control" id="search" v-model="query" placeholder="Type anything in here...">
-          </div>
-          <div class="form-check form-check-inline" v-for="f in facets">
-            <input class="form-check-input" type="checkbox" :id="f" @change="toggleFacet(f)">
-            <label class="form-check-label ml-1" :for="f">{{ f }}</label>
+            <input class="form-control" id="search" v-model="query" placeholder="Type anything in here..." style="height: 50px" autofocus>
           </div>
         </form>
       </div>
       <div class="row mt-3 mb-2">
-        <div class="mt-1 mb-2" v-if="query">Displaying <strong>{{ groupResults.length }}</strong> results found</div>
-
-        <div class="card mt-3 w-100" v-for="r in groupResults">
-          <a :href="r._source.link" target="_blank" class="result-link">
-            <div class="card-body p-2 pl-3 pr-3">
-
-              <!-- Title -->
-              <h4 class="card-title mb-0">
-                <strong class="result-title mb-0" v-html="highlight(r._source.title, r.highlight.title)"></strong>
-                <h6 class="float-right mt-0 mb-0 result-subtitle">{{ r._source.source }}</h6>
-              </h4>
-
-              <!-- h1, h2 and h3 -->
-              <h4 class="mt-0 mb-1" v-if="displayBreadcrumb(r._source, r.highlight)">
-                <span class="m-0 result-subtitle hash"># </span>
-                <span class="m-0 result-subtitle" v-html="displayBreadcrumb(r._source, r.highlight)"></span>
-              </h4>
-
-              <!-- Paragraph -->
-              <div class="p-2 pl-3 pr-3 markdown-body" v-if="r._source.type !== 'header' && r._source.type !== 'title'"
-                   v-html="highlight(r._source.rendered_content, r.highlight.content, paragraph=true)"></div>
+        <div class="col-2 card pb-4 h-100">
+          <h5 class="font-weight-bold mt-4">Facets</h5>
+          <div class="container mt-2" v-for="(facetsForGroup, facetGroupName) in facets">
+            <hr>
+            <input class="form-check-input" type="checkbox" :id="facetGroupName" @change="toggleFacetGroup(facetGroupName)" v-model="selectedFacetGroups.includes(facetGroupName)">
+            <label class="col-12 form-check-label ml-1 font-weight-bold" :for="facetGroupName">{{ facetGroupName }}</label>
+            <div class="col-12 pr-0 mt-2 form-check form-check-inline" v-for="facet in facetsForGroup">
+              <input class="form-check-input" type="checkbox" :id="facet" @change="toggleFacet(facet)" v-model="selectedFacets.includes(facet)">
+              <label class="form-check-label ml-1" :for="facet">{{ facet }}</label>
             </div>
-          </a>
+          </div>
+        </div>
+        <div class="col-10">
+          <div class="mt-1 mb-2" v-if="query">Displaying <strong>{{ groupResults.length }}</strong> results found</div>
+
+          <div class="card mt-3 w-100" v-for="r in groupResults">
+            <a :href="r._source.link" target="_blank" class="result-link">
+              <div class="card-body p-2 pl-3 pr-3">
+
+                <!-- Title -->
+                <h4 class="card-title mb-0">
+                  <strong class="result-title mb-0" v-html="highlight(r._source.title, r.highlight.title)"></strong>
+                  <h6 class="float-right mt-0 mb-0 result-subtitle">{{ r._source.facet_name }}</h6>
+                </h4>
+
+                <!-- h1, h2 and h3 -->
+                <h4 class="mt-0 mb-1" v-if="displayBreadcrumb(r._source, r.highlight)">
+                  <span class="m-0 result-subtitle hash"># </span>
+                  <span class="m-0 result-subtitle" v-html="displayBreadcrumb(r._source, r.highlight)"></span>
+                </h4>
+
+                <!-- Paragraph -->
+                <div class="p-2 pl-3 pr-3 markdown-body" v-if="r._source.type !== 'header' && r._source.type !== 'title'"
+                     v-html="highlight(r._source.rendered_content, r.highlight.content, paragraph=true)"></div>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -50,7 +60,7 @@
       groupResults() {
         const goupByTitle = (r) => {
           // We only go down up to h3
-          let key = r._source.source + ' / ' + r._source.title;
+          let key = r._source.facet_name + ' / ' + r._source.title;
           key += r._source.h1 ? '/' + r._source.h1 : '';
           key += r._source.h2 ? '/' + r._source.h2 : '';
           key += r._source.h3 ? '/' + r._source.h3 : '';
@@ -81,9 +91,9 @@
       return {
         query: this.$route.query.q || '',
         results: [],
-        reveal: [],
-        facets: [],
+        facets: {},
         selectedFacets: [],
+        selectedFacetGroups: [],
         hitCount: null
       }
     },
@@ -125,10 +135,7 @@
       },
       getFacets () {
         this.$http.get('/api/facets').then(response => {
-          const data = response.data;
-          this.facets = data.aggregations.genres.buckets.map(f => f.key);
-          this.facets.sort()
-
+          this.facets = response.data;
         }, error => {
           this.$bvToast.toast(`An error occured while getting facets`, {
             title: 'Warning',
@@ -172,11 +179,19 @@
 
         return highlightedRenderedContent;
       },
-      toggleVisibility(i) {
-        if (this.reveal.includes(i)) {
-          this.reveal = this.reveal.filter(j => j !== i)
+      toggleFacetGroup(facetGroup) {
+        let facetsForGroup = this.facets[facetGroup];
+
+        console.log(this.facets);
+        console.log(facetGroup);
+        console.log(facetsForGroup);
+
+        if (this.selectedFacetGroups.includes(facetGroup)) {
+          this.selectedFacetGroups = this.selectedFacetGroups.filter(j => j !== facetGroup);
+          this.selectedFacets = this.selectedFacetGroups.filter(j => !facetsForGroup.includes(j))
         } else {
-          this.reveal.push(i)
+          this.selectedFacetGroups.push(facetGroup);
+          facetsForGroup.forEach(f => this.selectedFacets.push(f));
         }
       },
       toggleFacet(facet) {

@@ -1,6 +1,8 @@
 import os
 from elasticsearch import Elasticsearch
 
+import scraper
+
 ES_HOST = os.getenv("ES_HOST", "localhost")
 ES_PORT = int(os.getenv("ES_PORT", "9200"))
 
@@ -21,7 +23,10 @@ def create():
     res = ES.indices.create(index=INDEX, body={
         "mappings": {
             "properties": {
-                "source": {
+                "facet_name": {
+                    "type": "keyword"
+                },
+                "facet_group": {
                     "type": "keyword"
                 },
                 "title": {
@@ -91,7 +96,7 @@ def delete():
 
 
 def search(query, facets):
-    should_terms = [{"term": {"source": f}} for f in facets]
+    should_terms = [{"term": {"facet_name": f}} for f in facets]
     min_should_match = 0 if not should_terms else 1
 
     return ES.search(index=INDEX, body={
@@ -165,10 +170,4 @@ def search(query, facets):
 
 
 def get_facets():
-    return ES.search(index=INDEX, body={
-        "aggs": {
-            "genres": {
-                "terms": {"field": "source"}
-            }
-        }
-    })
+    return scraper.FACET_GROUPS

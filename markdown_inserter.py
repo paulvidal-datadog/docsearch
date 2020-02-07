@@ -8,10 +8,11 @@ import es
 
 class CustomRenderer(mistune.Renderer):
 
-    def __init__(self, source, doc_title, url):
+    def __init__(self, facet_name, facet_group, doc_title, url):
         super().__init__()
 
-        self.source = source
+        self.facet_name = facet_name
+        self.facet_group = facet_group
         self.doc_title = doc_title
         self.url = url
         self.current_header = []
@@ -114,7 +115,8 @@ class CustomRenderer(mistune.Renderer):
             doc['rendered_content'] = rendered_content
 
         doc['title'] = self.doc_title
-        doc['source'] = self.source
+        doc['facet_name'] = self.facet_name
+        doc['facet_group'] = self.facet_group
         doc['type'] = type
 
         # id = hashlib.md5(doc['rendered_content'].encode("utf-8")).hexdigest()
@@ -182,8 +184,8 @@ class CustomRenderer(mistune.Renderer):
     #     return ''
 
 
-def insert_markdown_doc(source, file_content, title, url):
-    renderer = CustomRenderer(source=source, doc_title=title, url=url)
+def insert_markdown_doc(facet_name, facet_group,  file_content, title, url):
+    renderer = CustomRenderer(facet_name=facet_name, facet_group=facet_group, doc_title=title, url=url)
     markdown = mistune.Markdown(renderer=renderer)
     markdown(str(file_content))
 
