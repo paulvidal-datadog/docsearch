@@ -112,8 +112,8 @@ Once the image is sent to the us1.staging ECR repository, deploy everything usin
 ```bash
 kubectx general1.us1.staging.dog  # make sure to be in the right cluster and namespace 
 kubens datadog
-k template apply internal-services-proxy
-``` 
+k template apply docsearch
+```
 
 You will then need to redeploy the internal services proxy on us1.staging, which currently lives on the chinook cluster 
 in the sre namespace (this might change in the future)
