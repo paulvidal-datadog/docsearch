@@ -17,7 +17,7 @@
             <input class="form-check-input" type="checkbox" :id="facetGroupName" @change="toggleFacetGroup(facetGroupName)" v-model="selectedFacetGroups.includes(facetGroupName)">
             <label class="col-12 form-check-label ml-1 font-weight-bold" :for="facetGroupName">{{ facetGroupName }}</label>
             <div class="col-12 pr-0 mt-1 form-check form-check-inline" v-for="facet in facetsForGroup">
-              <input class="form-check-input" type="checkbox" :id="facet" @change="toggleFacet(facet)" v-model="selectedFacets.includes(facet)">
+              <input class="form-check-input" type="checkbox" :id="facet" @change="toggleFacet(facet)" v-model="facetArray.includes(facet)">
               <label class="form-check-label ml-1" :for="facet">{{ facet }}</label>
             </div>
           </div>
@@ -85,6 +85,10 @@
         });
 
         return results
+      },
+
+      facetArray () {
+        return this.getFacetArray();
       }
     },
     data() {
@@ -92,7 +96,7 @@
         query: this.$route.query.q || '',
         results: [],
         facets: {},
-        selectedFacets: [],
+        selectedFacets: this.$route.query.facets || '',
         selectedFacetGroups: [],
         hitCount: null
       }
@@ -111,10 +115,11 @@
       },
       makeQuery () {
         const query = this.query;
-        const facets = this.selectedFacets;
+        const facets = this.getFacetArray();
+        const facetQueryString = this.selectedFacets;
 
         // Update the query path
-        this.$router.push({ query: { q: query } });
+        this.$router.push({ query: { facets: facetQueryString, q: query } });
 
         // Make a search call
         this.$http.post('/api/search', {
@@ -184,18 +189,29 @@
 
         if (this.selectedFacetGroups.includes(facetGroup)) {
           this.selectedFacetGroups = this.selectedFacetGroups.filter(j => j !== facetGroup);
-          this.selectedFacets = this.selectedFacetGroups.filter(j => !facetsForGroup.includes(j))
+          facetsForGroup.forEach(f => this.removeFacet(f))
         } else {
           this.selectedFacetGroups.push(facetGroup);
-          facetsForGroup.forEach(f => this.selectedFacets.push(f));
+          facetsForGroup.forEach(f => this.addFacet(f));
         }
       },
       toggleFacet(facet) {
-        if (this.selectedFacets.includes(facet)) {
-          this.selectedFacets = this.selectedFacets.filter(j => j !== facet)
+        if (this.getFacetArray().includes(facet)) {
+          this.removeFacet(facet)
         } else {
-          this.selectedFacets.push(facet)
+          this.addFacet(facet)
         }
+      },
+      addFacet(facet) {
+        let newFacets = this.getFacetArray();
+        newFacets.push(facet);
+        this.selectedFacets = newFacets.join(',');
+      },
+      removeFacet(facet) {
+        this.selectedFacets = this.getFacetArray().filter(f => f !== facet).join(',');
+      },
+      getFacetArray() {
+        return this.selectedFacets === "" ? [] : this.selectedFacets.split(',');
       }
     }
   }
