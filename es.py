@@ -161,7 +161,7 @@ def search(query, facets):
                 }
             }
         },
-        'size': 500
+        'size': 300
     })
 
 
