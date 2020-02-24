@@ -177,7 +177,7 @@
 
           try {
             highlightedRenderedContent = highlightedRenderedContent.replace(
-              new RegExp(word + '(?![^<]\\*?>)', "g"), // do not replace in url within link tags i.e. <a href="url"></a>
+              new RegExp(word + '(?![^<]*?>)', "g"), // do not replace in url within link tags i.e. <a href="url"></a>
               `<em class="${cssClass}">${word}</em>`
             );
           } catch(err) {
