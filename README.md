@@ -115,8 +115,7 @@ kubens datadog
 k template apply docsearch
 ```
 
-You will then need to redeploy the internal services proxy on us1.staging, which currently lives on the chinook cluster 
-in the sre namespace (this might change in the future)
+(Optional if it has never been done before) You will then need to redeploy the internal services proxy on us1.staging, which currently lives on the chinook cluster in the sre namespace (this might change in the future)
 
 ```bash
 kubectx chinook.us1.staging.dog  # make sure to be in the right cluster and namespace
