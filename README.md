@@ -82,21 +82,31 @@ You will need to have beforehand built the static assets by running:
 yarn --cwd search build
 ``` 
 
-## Setting up Docker for production
+## Deploying in production
 
-### Build image
+### 1. Build the docker image locally
+
+There are no pipelines so you will have to build the image locally and send it to ECR.
+
+Get the latest tag and **increment it**.
+
+```
+latest-image --cloud aws staging docsearch
+```
+
+Then add this tag to the following line
 
 ```bash
 docker build -t 727006795293.dkr.ecr.us-east-1.amazonaws.com/docsearch:<tag> .
 ```
 
-### Login to the registry
+### 2. Login to the registry
 
 ```bash
 aws-vault exec staging-engineering -- aws ecr get-login --region us-east-1 --no-include-email --registry-ids 727006795293
 ```
 
-### Send to the registry
+### 3. Send the image to the registry
 
 We send the image to the us1.staging ECR registry directly
 
@@ -104,7 +114,19 @@ We send the image to the us1.staging ECR registry directly
 docker push 727006795293.dkr.ecr.us-east-1.amazonaws.com/docsearch:<tag>
 ```
 
-## Deploying in production
+### 4. Update the helm chart
+
+Go to `/k8s-resources`, in the `k8s/docsearch` folder and update the `values.yaml`.
+
+```
+image_web:
+  name: 727006795293.dkr.ecr.us-east-1.amazonaws.com/docsearch
+  tag: <tag>
+```
+
+### 5. Push a PR, merge it and then pull locally `k8s-resources`
+
+### 6. Apply the new chart
 
 Once the image is sent to the us1.staging ECR repository, deploy everything using the chart in k8s. Fot his go to 
 `k8s-resources` repository and run:
@@ -115,7 +137,11 @@ kubens datadog
 k template apply docsearch
 ```
 
-(Optional if it has never been done before) You will then need to redeploy the internal services proxy on us1.staging, which currently lives on the chinook cluster in the sre namespace (this might change in the future)
+## Add a url in the proxy
+
+The first time the project is deployed, update the internal proxy.
+
+You will then need to redeploy the internal services proxy on us1.staging, which currently lives on the chinook cluster in the sre namespace (this might change in the future)
 
 ```bash
 kubectx chinook.us1.staging.dog  # make sure to be in the right cluster and namespace
