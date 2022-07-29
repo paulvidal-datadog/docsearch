@@ -7,7 +7,7 @@ gunicorn==19.9.0
 itsdangerous==1.1.0
 Jinja2==2.10.1
 MarkupSafe==1.1.1
-mistune==0.8.4
+mistune==2.0.3
 smmap2==2.0.5
 urllib3==1.25.3
 Werkzeug==0.15.5
